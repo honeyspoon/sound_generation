@@ -13,7 +13,6 @@ import {
 let ctx = new AudioContext();
 
 function RenderApp(root) {
-  console.log(ctx);
   ReactDOM.render(
     <React.StrictMode>
       <App />

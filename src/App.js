@@ -1,7 +1,8 @@
 import "./App.css";
 
 import React, { useState, useEffect, useRef } from "react";
-import debounce from "lodash.debounce";
+
+import { debounce } from "lodash";
 
 import {
   // ElementaryPluginRenderer as core,
@@ -9,28 +10,55 @@ import {
   el,
 } from "@nick-thompson/elementary";
 
-
 core.on("error", (e) => {
   console.log(e);
 });
 
 core.on("load", (e) => {
-  console.log("loaded", e);
+  core.on("midi", (e) => {
+    console.log(e);
+  });
 });
 
+function DebouncedRangeSlider({
+  min,
+  max,
+  step,
+  initial,
+  onChange,
+  delay,
+  isLog,
+}) {
+  const [value, setValue] = useState(Math.log(initial));
+  const debouncedSave = useRef(
+    debounce((v) => {
+      return onChange(isLog ? Math.exp(v) : v);
+    }, delay)
+  ).current;
+
+  return (
+    <input
+      type="range"
+      min={isLog ? Math.log(min) : min}
+      max={isLog ? Math.log(max) : max}
+      value={value}
+      step={isLog ? Math.log(step) : step}
+      onChange={(e) => {
+        const val = parseFloat(e.target.value);
+        setValue(val);
+        debouncedSave(value);
+      }}
+    />
+  );
+}
 
 function App() {
   const [f, setF] = useState(440);
-  const [sliderF, setSliderF] = useState(Math.log(f));
 
   const minF = 20;
   const maxF = 21000;
 
-  const step = Math.pow(2, 1/12);
-
-  const debouncedSave = useRef(
-		debounce(nextValue => setF(Math.exp(nextValue)), 500),
-	).current;
+  const step = Math.pow(2, 1 / 12);
 
   useEffect(() => {
     let out_left = el.mul(0.5, el.cycle(f));
@@ -40,19 +68,17 @@ function App() {
 
   return (
     <div>
-      <p>hey</p>
       <p>
-        {f} | {sliderF}
-        <input
-          type="range"
-          min={Math.log(minF)}
-          max={Math.log(maxF)}
-          value={sliderF}
-          step={Math.log(step)}
-          onChange={(e) => {
-            const val = parseFloat(e.target.value);
-            setSliderF(val);
-            debouncedSave(sliderF);
+        {f}
+        <DebouncedRangeSlider
+          min={minF}
+          max={maxF}
+          initial={f}
+          step={step}
+          isLog={true}
+          delay={300}
+          onChange={(v) => {
+            setF(v);
           }}
         />
       </p>
