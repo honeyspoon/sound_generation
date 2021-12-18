@@ -1,6 +1,7 @@
 import "./App.css";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import debounce from "lodash.debounce";
 
 import {
   // ElementaryPluginRenderer as core,
@@ -8,9 +9,8 @@ import {
   el,
 } from "@nick-thompson/elementary";
 
-import debounce from "lodash.debounce";
 
-core.on("error", (e: unknown) => {
+core.on("error", (e) => {
   console.log(e);
 });
 
@@ -18,18 +18,23 @@ core.on("load", (e) => {
   console.log("loaded", e);
 });
 
+
 function App() {
   const [f, setF] = useState(440);
-  const [sliderF, setSliderF] = useState(f);
+  const [sliderF, setSliderF] = useState(Math.log(f));
+
+  const minF = 20;
+  const maxF = 21000;
+
+  const step = Math.pow(2, 1/12);
 
   const debouncedSave = useRef(
-		debounce(nextValue => setF(nextValue), 1000),
+		debounce(nextValue => setF(Math.exp(nextValue)), 500),
 	).current;
 
   useEffect(() => {
     let out_left = el.mul(0.5, el.cycle(f));
     let out_right = el.mul(0.4, el.cycle(f));
-    console.log("new f", f);
     core.render(out_left, out_right);
   }, [f]);
 
@@ -40,11 +45,12 @@ function App() {
         {f} | {sliderF}
         <input
           type="range"
-          min="1"
-          max="21000"
+          min={Math.log(minF)}
+          max={Math.log(maxF)}
           value={sliderF}
+          step={Math.log(step)}
           onChange={(e) => {
-            const val = parseInt(e.target.value);
+            const val = parseFloat(e.target.value);
             setSliderF(val);
             debouncedSave(sliderF);
           }}
