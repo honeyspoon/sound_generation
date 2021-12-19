@@ -20,6 +20,45 @@ core.on("load", (e) => {
   });
 });
 
+const letters = [
+  "C",
+  "C#",
+  "D",
+  "D#",
+  "E",
+  "F",
+  "F#",
+  "G",
+  "G#",
+  "A",
+  "A#",
+  "B",
+];
+
+const firstNoteFreq = 8.175799;
+const step = Math.pow(2, 1 / 12);
+
+function freqToNote(freq) {
+  // TODO: simplify this
+  const note = Math.log(freq / firstNoteFreq) / Math.log(step);
+  const noteInt = Math.round(note);
+
+  return noteInt;
+}
+
+function noteToFreq(note) {
+  const freq = Math.pow(step, note) * firstNoteFreq;
+  return freq;
+}
+
+function noteToLetter(note) {
+  const octave = Math.floor(note / letters.length) - 1;
+  const letterPos = Math.floor(note % letters.length);
+  const letter = letters[letterPos];
+
+  return letter + octave;
+}
+
 function DebouncedRangeSlider({
   min,
   max,
@@ -56,20 +95,18 @@ function App() {
   const [f, setF] = useState(440);
 
   const minF = 20;
-  const maxF = 21000;
-
-  const step = Math.pow(2, 1 / 12);
+  const maxF = 10000;
 
   useEffect(() => {
     let out_left = el.mul(0.5, el.cycle(f));
     let out_right = el.mul(0.4, el.cycle(f));
-    core.render(out_left, out_right);
+    // core.render(out_left, out_right);
   }, [f]);
 
   return (
     <div>
       <p>
-        {f}
+        {f} | {freqToNote(f)} | {noteToLetter(freqToNote(f))}
         <DebouncedRangeSlider
           min={minF}
           max={maxF}
@@ -82,6 +119,13 @@ function App() {
           }}
         />
       </p>
+      {Array(128)
+        .fill()
+        .map((_, i) => (
+          <div key={i}>
+            {i}: {noteToFreq(i)} | {noteToLetter(i)}
+          </div>
+        ))}
     </div>
   );
 }
