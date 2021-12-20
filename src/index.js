@@ -7,7 +7,6 @@ import reportWebVitals from "./reportWebVitals";
 import {
   // ElementaryPluginRenderer as core,
   ElementaryWebAudioRenderer as core,
-  el,
 } from "@nick-thompson/elementary";
 
 let ctx = new AudioContext();

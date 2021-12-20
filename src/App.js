@@ -2,7 +2,7 @@ import "./App.css";
 
 import React, { useState, useEffect, useRef } from "react";
 
-import { debounce } from "lodash";
+import { debounce, wrap } from "lodash";
 
 import {
   // ElementaryPluginRenderer as core,
@@ -14,11 +14,13 @@ core.on("error", (e) => {
   console.log(e);
 });
 
-core.on("load", (e) => {
+core.on("load", () => {
   core.on("midi", (e) => {
     console.log(e);
   });
 });
+
+const silence = el.mul(0, el.cycle(0));
 
 const letters = [
   "C",
@@ -48,7 +50,7 @@ function freqToNote(freq) {
 
 function noteToFreq(note) {
   const freq = Math.pow(step, note) * firstNoteFreq;
-  return freq;
+  return freq.toFixed(2);
 }
 
 function noteToLetter(note) {
@@ -59,15 +61,7 @@ function noteToLetter(note) {
   return letter + octave;
 }
 
-function DebouncedRangeSlider({
-  min,
-  max,
-  step,
-  initial,
-  onChange,
-  delay,
-  isLog,
-}) {
+function RangeSlider({ min, max, step, initial, onChange, delay, isLog }) {
   const [value, setValue] = useState(Math.log(initial));
   const debouncedSave = useRef(
     debounce((v) => {
@@ -91,41 +85,150 @@ function DebouncedRangeSlider({
   );
 }
 
+function synthVoice({ key, gate, freq }) {
+  const env = el.adsr(
+    4.0,
+    1.0,
+    0.4,
+    2.0,
+    el.const({ key: `${key}:gate`, gate })
+  );
+
+  const f = parseFloat(freq);
+
+  // return el.mul(env, el.cycle(el.const({ key: `${key}:freq`, f })));
+  return el.mul(env, el.cycle(f));
+}
+
+function Footer() {
+  return (
+    <div>
+      Abderahmane Bouziane <a href="https://github.com/hnspn/music">@hnspn</a>
+    </div>
+  );
+}
+
 function App() {
+  return (
+    <div>
+      <h1>music dashboard</h1>
+      <FreqSlider />
+      <NoteList />
+      <Footer />
+    </div>
+  );
+}
+
+function Collapsible({ initial, children }) {
+  const [collapsed, setCollapsed] = useState(initial);
+  return (
+    <div>
+      <button onClick={() => setCollapsed((collapsed) => !collapsed)}>
+        {collapsed ? "-" : "+"}
+      </button>
+      {collapsed ? children : ""}
+    </div>
+  );
+}
+
+function FreqSlider() {
   const [f, setF] = useState(440);
+  const [play, setPlay] = useState(false);
 
   const minF = 20;
   const maxF = 10000;
 
   useEffect(() => {
-    let out_left = el.mul(0.5, el.cycle(f));
-    let out_right = el.mul(0.4, el.cycle(f));
-    // core.render(out_left, out_right);
-  }, [f]);
+    let out = el.mul(0.4, el.cycle(f));
+    if (!play) {
+      out = el.mul(0, out);
+    }
+    core.render(out, out);
+  }, [f, play]);
 
   return (
-    <div>
+    <>
+      <h2>slider</h2>
       <p>
         {f} | {freqToNote(f)} | {noteToLetter(freqToNote(f))}
-        <DebouncedRangeSlider
+        <RangeSlider
           min={minF}
           max={maxF}
           initial={f}
           step={step}
           isLog={true}
           delay={300}
-          onChange={(v) => {
-            setF(v);
-          }}
+          onChange={setF}
         />
       </p>
-      {Array(128)
-        .fill()
-        .map((_, i) => (
-          <div key={i}>
-            {i}: {noteToFreq(i)} | {noteToLetter(i)}
-          </div>
-        ))}
+      <button onClick={() => setPlay((play) => !play)}>
+        {play ? "pause" : "play"}
+      </button>
+    </>
+  );
+}
+
+function NoteList() {
+  const [notes, setNotes] = useState([]);
+
+  function addNote(gate, freq) {
+    setNotes((notes) => [...notes, { key: `${Date.now()}`, gate, freq }]);
+  }
+
+  function removeNote(freq) {
+    setNotes((notes) => notes.filter((n) => n.freq !== freq));
+  }
+
+  function clearNotes() {
+    setNotes([]);
+  }
+
+  useEffect(() => {
+    if (notes.length) {
+      const synthVoices = notes.map(synthVoice);
+      const out = el.add(synthVoices);
+      core.render(out, out);
+    } else {
+      core.render(silence, silence);
+    }
+  }, [notes]);
+
+  return (
+    <div>
+      <h2>Notes on </h2>
+      {notes.map(({ freq }) => (
+        <div key={freq}>
+          {noteToLetter(freqToNote(freq))}
+          <button onClick={() => removeNote(freq)}>-</button>
+        </div>
+      ))}
+      <button onClick={clearNotes}>clear</button>
+      <h2>List</h2>
+      <Collapsible>
+        {Array(128)
+          .fill()
+          .map((_, i) => (
+            <div key={i}>
+              {i}: {noteToFreq(i)} | {noteToLetter(i)}|
+              <button onClick={() => addNote(0.4, noteToFreq(i))}> add </button>
+              <button onClick={() => removeNote(noteToFreq(i))}>
+                {" "}
+                remove{" "}
+              </button>
+              <button
+                onClick={() => {
+                  const f = noteToFreq(i);
+                  addNote(0.1, f);
+                  setTimeout(() => {
+                    removeNote(f);
+                  }, 500);
+                }}
+              >
+                play
+              </button>
+            </div>
+          ))}
+      </Collapsible>
     </div>
   );
 }
