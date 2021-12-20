@@ -88,6 +88,7 @@ function RangeSlider({ min, max, step, initial, onChange, delay, isLog }) {
 function synthVoice({ key, gate, freq }) {
   const env = el.adsr(
     4.0,
+
     1.0,
     0.4,
     2.0,
@@ -202,9 +203,11 @@ function NoteList() {
           <button onClick={() => removeNote(freq)}>-</button>
         </div>
       ))}
+      <h2>enveloppe</h2>
+      <div>attack: 4.0, delay: 1.0, sustain: 0.4, release: 2.0,</div>
       <button onClick={clearNotes}>clear</button>
       <h2>List</h2>
-      <Collapsible>
+      <Collapsible initial="true">
         {Array(128)
           .fill()
           .map((_, i) => (
