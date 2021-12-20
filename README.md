@@ -1,5 +1,7 @@
 # music
 
+this repo is a place where I can test stuff while learning music theory and building audio plugins with the awesome [elementary audio lib](https://github.com/nick-thompson/elementary)
+
 ## TODO
 - [ ] handle midi in
   can't get it to work with rtmidi
