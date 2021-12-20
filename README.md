@@ -3,7 +3,7 @@
 this repo is a place where I can test stuff while learning music theory and building audio plugins with the awesome [elementary audio lib](https://github.com/nick-thompson/elementary)
 
 ## TODO
-- [ ] handle midi in. 
+- [ ] handle midi in  
   can't get it to work with rtmidi
   might have to buy a midid keyboard
 - [ ] add python midi generator to this repo
@@ -14,7 +14,7 @@ this repo is a place where I can test stuff while learning music theory and buil
 - [ ] figure out why I can't use `el.const` with the freq
 - [ ] make the audio rendering global
   I can do the rending in a top level component
-- [ ] detect platform and import the right library. 
+- [ ] detect platform and import the right library  
   not sure if it's possible
-- [ ] make a synth. 
+- [ ] make a synth  
   gotta use all the stuff in elementary lib
