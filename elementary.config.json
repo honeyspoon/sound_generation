@@ -1,0 +1,12 @@
+{
+  "window": {
+    "width": 565,
+    "height": 280,
+    "maxWidth": 1130,
+    "maxHeight": 560,
+    "minWidth": 565,
+    "minHeight": 280,
+    "resizable": true,
+    "preserveAspectRatio": true
+  }
+}
