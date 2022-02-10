@@ -43,5 +43,5 @@
     "gh-pages": "^3.2.3",
     "prettier": "^2.5.1"
   },
-  "homepage": "http://hnspn.github.io/music"
+  "homepage": "http://hnspn.github.io/sound_generation"
 }
